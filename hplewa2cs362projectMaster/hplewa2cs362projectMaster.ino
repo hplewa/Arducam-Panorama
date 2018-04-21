@@ -11,17 +11,22 @@ LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 /*
  * Buttons
  */
-const int cameraCaptureButton = 6;
-const int changeResolutionButton = 7;
+const int captureButton = 6;
+const int upResolutionButton = 7;
 
+/*
+ * GPS Interface
+ */
+byte gpsSignal = 0x11;
+ 
 /*
  * Camera Interface
 */
-byte captureCode = 0x10;
+byte captureSignal = 0x10;
 const int numResolutions = 9;
 int resolutions[numResolutions][2] = { {160, 120}, {176,144}, {320, 240},
                                     {352, 288}, {640, 480}, {800, 600},
-                                    {1024, 768}, {1280, 1024}, {1600, 1200}}
+                                    {1024, 768}, {1280, 1024}, {1600, 1200}};
 int currentResolution = 0;
 int numPixels;
 char* pixels;
@@ -58,9 +63,20 @@ void updateResolution(){
 }
 
 void cameraCaptureButton(){
-  if(digitalRead(cameraCaptureButton)){
-    while(!digitalRead(cameraCaptureButton){} //Wait for release
-    Serial.write(captureCode);
+  if(digitalRead(captureButton)){
+    while(!digitalRead(cameraCaptureButton)){} //Wait for release
+
+    //Get GPS data
+    Serial.write(gpsSignal);
+
+    while(!Serial.available()){} //Wait for signal
+    double latitude = Serial.read();
+    double longitude = Serial.read();
+
+
+
+    //Get pictures
+    Serial.write(captureSignal);
     Serial.flush();
     int i = 0;
     while(Serial.available()){ //Read in pictures
@@ -71,8 +87,8 @@ void cameraCaptureButton(){
 
 
 void changeResolutionButton(){
-  if(digitalRead(changeResolutionButton)){
-    while(!digitalRead(changeResolutionButton)){} //Wait for release
+  if(digitalRead(upResolutionButton)){
+    while(!digitalRead(upResolutionButton)){} //Wait for release
     updateResolution();
   }
 }
@@ -81,8 +97,8 @@ void changeResolutionButton(){
 void setup(){
   Serial.begin(921600);  //link to PC
 
-  pinMode(INPUT, cameraCaptureButton);
-  pinMode(INPUT, changeResolutionButton);
+  pinMode(INPUT, captureButton);
+  pinMode(INPUT, upResolutionButton);
   lcd.begin(16, 2);
   updateLCDScreen();
   Serial.write(currentResolution);
