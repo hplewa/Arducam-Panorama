@@ -10,26 +10,6 @@ LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 
 
 /*
-<<<<<<< HEAD
- * Buttons
- */
-const int captureButton = 6;
-const int upResolutionButton = 7;
-
-/*
- * GPS Interface
- */
-byte gpsSignal = 0x11;
- 
-/*
- * Camera Interface
-*/
-byte captureSignal = 0x10;
-const int numResolutions = 9;
-int resolutions[numResolutions][2] = { {160, 120}, {176,144}, {320, 240},
-                                    {352, 288}, {640, 480}, {800, 600},
-                                    {1024, 768}, {1280, 1024}, {1600, 1200}};
-=======
    GPS data
 */
 const int gpsSignal = 0x11;
@@ -49,7 +29,6 @@ int resolutions[numResolutions][2] = { {160, 120}, {176, 144}, {320, 240},
   {352, 288}, {640, 480}, {800, 600},
   {1024, 768}, {1280, 1024}, {1600, 1200}
 };
->>>>>>> master
 int currentResolution = 0;
 int numPixels;
 char* pixels;
@@ -88,23 +67,6 @@ void updateResolution() {
   Serial.write(currentResolution);
 }
 
-<<<<<<< HEAD
-void cameraCaptureButton(){
-  if(digitalRead(captureButton)){
-    while(!digitalRead(cameraCaptureButton)){} //Wait for release
-
-    //Get GPS data
-    Serial.write(gpsSignal);
-
-    while(!Serial.available()){} //Wait for signal
-    double latitude = Serial.read();
-    double longitude = Serial.read();
-
-
-
-    //Get pictures
-    Serial.write(captureSignal);
-=======
 void cameraCaptureButton() {
   //lcd.setCursor(14,0);
   int state = digitalRead(captureButton);
@@ -126,7 +88,6 @@ void cameraCaptureButton() {
     
     while (!Serial.available()) {}
     float lon = Serial.parseFloat();
->>>>>>> master
     Serial.flush();
 
     lcd.setCursor(0, 0);
@@ -151,16 +112,10 @@ void cameraCaptureButton() {
 }
 
 
-<<<<<<< HEAD
-void changeResolutionButton(){
-  if(digitalRead(upResolutionButton)){
-    while(!digitalRead(upResolutionButton)){} //Wait for release
-=======
 
 void changeResolutionButton() {
   if (digitalRead(upResolutionButton)) {
     while (!digitalRead(upResolutionButton)) {} //Wait for release
->>>>>>> master
     updateResolution();
   }
 }
@@ -191,4 +146,3 @@ void loop() {
   //changeResolutionButton();
 
 }
-
