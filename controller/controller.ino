@@ -18,7 +18,8 @@ const int gpsSignal = 0x11;
    Buttons
 */
 const int captureButton = 7;
-const int upResolutionButton = 8;
+const int incResButton = 8;
+const int decResButton = 9;
 
 /*
    Camera Interface
@@ -60,12 +61,7 @@ void updateLCDScreen() {
   lcd.print(resolutions[currentResolution][1]);
 }
 
-void updateResolution() {
-  currentResolution = (currentResolution + 1) % numResolutions;
-  updateLCDScreen();
-  setPixels();
-  Serial.write(currentResolution);
-}
+
 
 void cameraCaptureButton() {
   //lcd.setCursor(14,0);
@@ -113,10 +109,31 @@ void cameraCaptureButton() {
 
 
 
+void incResolution() {
+  if(currentResolution < numResolutions){
+    currentResolution = (currentResolution + 1) % numResolutions;
+    updateLCDScreen();
+    setPixels();
+    Serial.write(currentResolution);
+  }
+}
+void decResolution() {
+  if(currentResolution > 0){
+    currentResolution = (currentResolution + 1) % numResolutions;
+    updateLCDScreen();
+    setPixels();
+    Serial.write(currentResolution);
+  }
+}
 void changeResolutionButton() {
-  if (digitalRead(upResolutionButton)) {
-    while (!digitalRead(upResolutionButton)) {} //Wait for release
-    updateResolution();
+  if (digitalRead(incResButton)) {
+    while (digitalRead(incResButton)) {} //Wait for release
+    incResolution();
+  }
+
+  if (digitalRead(decResButton)) {
+    while (digitalRead(decResButton)) {} //Wait for release
+    decResolution();
   }
 }
 
@@ -125,14 +142,14 @@ void setup() {
   Serial.begin(921600);  //link to PC
 
   pinMode(INPUT, captureButton);
-  pinMode(INPUT, upResolutionButton);
+  pinMode(INPUT, incResButton);
+  pinMode(INPUT, decResButton);
+
   lcd.begin(16, 2);
   updateLCDScreen();
   setPixels();
 
   Serial.write(currentResolution);
-  //Serial.flush();
-  //Serial.println("Setup");
 }
 
 
