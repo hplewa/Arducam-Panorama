@@ -18,7 +18,8 @@ const int gpsSignal = 0x11;
    Buttons
 */
 const int captureButton = 7;
-const int upResolutionButton = 8;
+const int incResButton = 8;
+const int decResButton = 9;
 
 /*
    Camera Interface
@@ -48,44 +49,31 @@ void setPixels() {
   pixels = (char*)malloc(numBytes * sizeof(char));
 }
 
-
 void updateLCDScreen() {
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.write("Resolution:");
   lcd.setCursor(0, 1);
-
   lcd.print(resolutions[currentResolution][0]);
   lcd.print("x");
   lcd.print(resolutions[currentResolution][1]);
 }
 
-void updateResolution() {
-  currentResolution = (currentResolution + 1) % numResolutions;
-  updateLCDScreen();
-  setPixels();
-  Serial.write(currentResolution);
-}
-
 void cameraCaptureButton() {
-  //lcd.setCursor(14,0);
-  int state = digitalRead(captureButton);
-  //Serial.println(state);
-  if (state) {
+  int cap = digitalRead(captureButton);
+  lcd.setCursor(15,0);
+  lcd.print(cap);
+  if (cap) {
     while (digitalRead(captureButton)) {} //Wait for release
-    //delay(10000);
+
     //Send GPS signal
-    lcd.setCursor(14,0);
-    
+    lcd.setCursor(14, 0);
+
     Serial.write(gpsSignal);
-    
-    
-    while (!Serial.available()) { Serial.println("Waiting for pauls code.."); }
-    
-    
+    while (!Serial.available()) {} //Wait for GPS board response
     float lat = Serial.parseFloat();
     Serial.flush();
-    
+
     while (!Serial.available()) {}
     float lon = Serial.parseFloat();
     Serial.flush();
@@ -97,12 +85,9 @@ void cameraCaptureButton() {
 
     //Send Camera Signal
     Serial.write(captureCode);
-    //Serial.flush();
-    int i = 0;
-    //while(!Serial.available()){}
-    //while (for ) { //Read in pictures
-    for(i = 0; i < numBytes; i++){
-      if(Serial.available()){
+    int i;
+    for (i = 0; i < numBytes; i++) {
+      if (Serial.available()) {
         pixels[i++] = Serial.read();
       }
     }
@@ -112,12 +97,42 @@ void cameraCaptureButton() {
 }
 
 
+void decResolution() {
+  if (currentResolution > 0) {
+    currentResolution = (currentResolution - 1) % numResolutions;
+    updateLCDScreen();
+    setPixels();
+    Serial.write(currentResolution);
+  }
+}
+
+void incResolution() {
+  if (currentResolution < numResolutions - 1) {
+    currentResolution = (currentResolution + 1) % numResolutions;
+    updateLCDScreen();
+    setPixels();
+    Serial.write(currentResolution);
+  }
+}
 
 void changeResolutionButton() {
-  if (digitalRead(upResolutionButton)) {
-    while (!digitalRead(upResolutionButton)) {} //Wait for release
-    updateResolution();
+  int dec = digitalRead(decResButton);
+  lcd.setCursor(13, 0);
+  lcd.print(dec);
+  if (dec) {
+    while (digitalRead(decResButton)) {} //Wait for release
+    decResolution();
   }
+  
+  int inc = digitalRead(incResButton);
+  lcd.setCursor(14, 0);
+  lcd.print(inc);
+  if (inc) {
+    while (digitalRead(incResButton)) {} //Wait for release
+    incResolution();
+  }
+
+
 }
 
 
@@ -125,14 +140,14 @@ void setup() {
   Serial.begin(921600);  //link to PC
 
   pinMode(INPUT, captureButton);
-  pinMode(INPUT, upResolutionButton);
+  pinMode(INPUT, incResButton);
+  pinMode(INPUT, decResButton);
+
   lcd.begin(16, 2);
   updateLCDScreen();
   setPixels();
 
   Serial.write(currentResolution);
-  //Serial.flush();
-  //Serial.println("Setup");
 }
 
 
@@ -143,6 +158,7 @@ void loop() {
 
 
   //Check resolution change button
-  //changeResolutionButton();
+  changeResolutionButton();
+
 
 }
